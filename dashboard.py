@@ -60,25 +60,16 @@ def load_excel_data():
         import requests
         from io import BytesIO
 
-        # Downloaduj plik z GitHub raw content
-        file_name = Path(latest_file).name
-        url = f'https://raw.githubusercontent.com/Blazej1988/scrap-dashboard/main/OUTPUT/{file_name}'
-        response = requests.get(url)
+        # Czytaj Data sheet (monthly aggregation)
+        data_monthly = pd.read_excel(latest_file, sheet_name='Data', engine='openpyxl')
 
-        if response.status_code != 200:
-            st.error(f"❌ Nie mogę downloadować pliku z GitHub!")
-            return None, None
-
-        # Czytaj z BytesIO
-        excel_file = BytesIO(response.content)
-        data_monthly = pd.read_excel(excel_file, sheet_name='Data', engine='openpyxl')
-
-        excel_file = BytesIO(response.content)
-        data_weekly = pd.read_excel(excel_file, sheet_name='DataWeekly', engine='openpyxl')
+        # Czytaj DataWeekly sheet (weekly aggregation)
+        data_weekly = pd.read_excel(latest_file, sheet_name='DataWeekly', engine='openpyxl')
 
         return data_monthly, data_weekly
     except Exception as e:
-        st.error(f"❌ Błąd czytania Excel: {str(e)}")
+        st.error(f"❌ Błąd: {str(e)}")
+        st.info(f"📍 Szuka pliku: {latest_file}")
         return None, None
 
 # Załaduj dane
