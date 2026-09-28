@@ -61,10 +61,10 @@ def load_excel_data():
 
     try:
         # Czytaj Data sheet (monthly aggregation)
-        data_monthly = pd.read_excel(latest_file, sheet_name='Data')
+        data_monthly = pd.read_excel(latest_file, sheet_name='Data', engine='openpyxl')
 
         # Czytaj DataWeekly sheet (weekly aggregation)
-        data_weekly = pd.read_excel(latest_file, sheet_name='DataWeekly')
+        data_weekly = pd.read_excel(latest_file, sheet_name='DataWeekly', engine='openpyxl')
 
         return data_monthly, data_weekly
     except Exception as e:
