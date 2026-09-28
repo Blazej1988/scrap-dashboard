@@ -213,7 +213,13 @@ for component in components:
         fig1 = go.Figure()
 
         for project in comp_data['Project'].unique():
-            proj_data = comp_data[comp_data['Project'] == project].sort_values(period_col)
+            proj_data = comp_data[comp_data['Project'] == project].copy()
+            # Sortuj: dla tygodni numerycznie, dla miesięcy po M1-M9
+            if period_col == 'Week':
+                proj_data['Week_Num'] = proj_data['Week'].str.extract('(\d+)').astype(int)
+                proj_data = proj_data.sort_values('Week_Num')
+            else:
+                proj_data = proj_data.sort_values(period_col)
 
             fig1.add_trace(go.Scatter(
                 x=proj_data[period_col],
@@ -240,7 +246,13 @@ for component in components:
         fig2 = go.Figure()
 
         for project in comp_data['Project'].unique():
-            proj_data = comp_data[comp_data['Project'] == project].sort_values(period_col)
+            proj_data = comp_data[comp_data['Project'] == project].copy()
+            # Sortuj: dla tygodni numerycznie, dla miesięcy po M1-M9
+            if period_col == 'Week':
+                proj_data['Week_Num'] = proj_data['Week'].str.extract('(\d+)').astype(int)
+                proj_data = proj_data.sort_values('Week_Num')
+            else:
+                proj_data = proj_data.sort_values(period_col)
 
             fig2.add_trace(go.Scatter(
                 x=proj_data[period_col],
@@ -266,7 +278,13 @@ for component in components:
     fig3 = go.Figure()
 
     for project in comp_data['Project'].unique():
-        proj_data = comp_data[comp_data['Project'] == project].sort_values(period_col)
+        proj_data = comp_data[comp_data['Project'] == project].copy()
+        # Sortuj: dla tygodni numerycznie, dla miesięcy po M1-M9
+        if period_col == 'Week':
+            proj_data['Week_Num'] = proj_data['Week'].str.extract('(\d+)').astype(int)
+            proj_data = proj_data.sort_values('Week_Num')
+        else:
+            proj_data = proj_data.sort_values(period_col)
 
         fig3.add_trace(go.Bar(
             x=proj_data[period_col],
