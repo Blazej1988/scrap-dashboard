@@ -45,38 +45,40 @@ st.markdown("""
 # ==================== LOAD DATA ====================
 @st.cache_data
 def load_excel_data():
-    """Załaduj dane z najnowszego raportu Excel"""
-    import glob
+    """Załaduj dane z raportu Excel z GitHub raw content"""
+    import requests
+    from io import BytesIO
 
-    files = sorted(glob.glob('OUTPUT/SCRAP_ANALYSIS_*.xlsx'))
+    github_url = "https://raw.githubusercontent.com/Blazej1988/scrap-dashboard/main/OUTPUT/SCRAP_ANALYSIS_20260928_115601.xlsx"
 
-    # Diagnostyka
-    import os
-    all_files = os.listdir('OUTPUT') if os.path.exists('OUTPUT') else []
-    st.info(f"📁 Pliki w OUTPUT: {all_files}")
-    st.info(f"📊 Znaleziono Excel: {files}")
-
-    if not files:
-        st.error("❌ Brak raportów Excel w OUTPUT!")
-        return None, None
-
-    latest_file = files[-1]
-    st.sidebar.info(f"📄 Plik: {Path(latest_file).name}")
+    st.sidebar.info(f"📄 Plik: SCRAP_ANALYSIS_20260928_115601.xlsx")
+    st.sidebar.info(f"📡 Źródło: GitHub Raw Content")
 
     try:
-        import requests
-        from io import BytesIO
+        # Pobierz plik z GitHub
+        response = requests.get(github_url, timeout=10)
+
+        if response.status_code != 200:
+            st.error(f"❌ Błąd pobierania z GitHub: {response.status_code}")
+            return None, None
+
+        excel_file = BytesIO(response.content)
 
         # Czytaj Data sheet (monthly aggregation)
-        data_monthly = pd.read_excel(latest_file, sheet_name='Data', engine='openpyxl')
+        data_monthly = pd.read_excel(excel_file, sheet_name='Data', engine='openpyxl')
+
+        # Resetuj BytesIO pointer dla drugiego czytania
+        excel_file.seek(0)
 
         # Czytaj DataWeekly sheet (weekly aggregation)
-        data_weekly = pd.read_excel(latest_file, sheet_name='DataWeekly', engine='openpyxl')
+        data_weekly = pd.read_excel(excel_file, sheet_name='DataWeekly', engine='openpyxl')
 
+        st.sidebar.success("✅ Dane załadowane pomyślnie!")
         return data_monthly, data_weekly
+
     except Exception as e:
         st.error(f"❌ Błąd: {str(e)}")
-        st.info(f"📍 Szuka pliku: {latest_file}")
+        st.info(f"📍 URL: {github_url}")
         return None, None
 
 # Załaduj dane
