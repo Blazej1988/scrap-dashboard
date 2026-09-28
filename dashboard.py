@@ -49,6 +49,13 @@ def load_excel_data():
     import glob
 
     files = sorted(glob.glob('OUTPUT/SCRAP_ANALYSIS_*.xlsx'))
+
+    # Diagnostyka
+    import os
+    all_files = os.listdir('OUTPUT') if os.path.exists('OUTPUT') else []
+    st.info(f"📁 Pliki w OUTPUT: {all_files}")
+    st.info(f"📊 Znaleziono Excel: {files}")
+
     if not files:
         st.error("❌ Brak raportów Excel w OUTPUT!")
         return None, None
