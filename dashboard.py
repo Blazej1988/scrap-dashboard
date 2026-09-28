@@ -45,40 +45,30 @@ st.markdown("""
 # ==================== LOAD DATA ====================
 @st.cache_data
 def load_excel_data():
-    """Załaduj dane z raportu Excel z GitHub raw content"""
-    import requests
-    from io import BytesIO
+    """Załaduj dane z najnowszego raportu Excel"""
+    import glob
 
-    github_url = "https://raw.githubusercontent.com/Blazej1988/scrap-dashboard/main/OUTPUT/SCRAP_ANALYSIS_20260928_115601.xlsx"
+    files = sorted(glob.glob('OUTPUT/SCRAP_ANALYSIS_*.xlsx'))
 
-    st.sidebar.info(f"📄 Plik: SCRAP_ANALYSIS_20260928_115601.xlsx")
-    st.sidebar.info(f"📡 Źródło: GitHub Raw Content")
+    if not files:
+        st.error("❌ Brak raportów Excel w OUTPUT!")
+        return None, None
+
+    latest_file = files[-1]
+    st.sidebar.info(f"📄 Plik: {Path(latest_file).name}")
 
     try:
-        # Pobierz plik z GitHub
-        response = requests.get(github_url, timeout=10)
-
-        if response.status_code != 200:
-            st.error(f"❌ Błąd pobierania z GitHub: {response.status_code}")
-            return None, None
-
-        excel_file = BytesIO(response.content)
-
         # Czytaj Data sheet (monthly aggregation)
-        data_monthly = pd.read_excel(excel_file, sheet_name='Data', engine='openpyxl')
-
-        # Resetuj BytesIO pointer dla drugiego czytania
-        excel_file.seek(0)
+        data_monthly = pd.read_excel(latest_file, sheet_name='Data', engine='openpyxl')
 
         # Czytaj DataWeekly sheet (weekly aggregation)
-        data_weekly = pd.read_excel(excel_file, sheet_name='DataWeekly', engine='openpyxl')
+        data_weekly = pd.read_excel(latest_file, sheet_name='DataWeekly', engine='openpyxl')
 
-        st.sidebar.success("✅ Dane załadowane pomyślnie!")
+        st.sidebar.success("✅ Dane załadowane!")
         return data_monthly, data_weekly
-
     except Exception as e:
         st.error(f"❌ Błąd: {str(e)}")
-        st.info(f"📍 URL: {github_url}")
+        st.info(f"📍 Szuka pliku: {latest_file if files else 'brak'}")
         return None, None
 
 # Załaduj dane
@@ -191,13 +181,25 @@ for component in components:
     table_data['Plan Qty'] = table_data['Plan Qty'].astype(int)
     table_data['Scrap Qty'] = table_data['Scrap Qty'].astype(int)
 
-    # Pivot tabela - pokaż U-PJT i B-PJT obok siebie
+    # Pivot tabela - pokaż B-PJT (Plan, Scrap, Ratio %), potem U-PJT
     pivot_data = table_data.pivot_table(
         index=period_col,
         columns='Projekt',
         values=['Plan Qty', 'Scrap Qty', 'Ratio %'],
         aggfunc='first'
     )
+
+    # Przeustawiamy kolumny: B-PJT (Plan, Scrap, Ratio %), U-PJT (Plan, Scrap, Ratio %)
+    reordered_cols = [
+        ('Plan Qty', 'B-PJT'),
+        ('Scrap Qty', 'B-PJT'),
+        ('Ratio %', 'B-PJT'),
+        ('Plan Qty', 'U-PJT'),
+        ('Scrap Qty', 'U-PJT'),
+        ('Ratio %', 'U-PJT'),
+    ]
+    pivot_data = pivot_data[[col for col in reordered_cols if col in pivot_data.columns]]
+    pivot_data.columns = ['B-PJT Plan', 'B-PJT Scrap', 'B-PJT Ratio %', 'U-PJT Plan', 'U-PJT Scrap', 'U-PJT Ratio %']
 
     st.dataframe(pivot_data, use_container_width=True)
 
