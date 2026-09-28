@@ -46,18 +46,15 @@ st.markdown("""
 @st.cache_data
 def load_excel_data():
     """Załaduj dane z najnowszego raportu Excel"""
-    output_dir = Path('OUTPUT')
-    if not output_dir.exists():
-        st.error("❌ Folder OUTPUT nie znaleziony!")
-        return None, None
+    import glob
 
-    files = sorted(output_dir.glob('SCRAP_ANALYSIS_*.xlsx'))
+    files = sorted(glob.glob('OUTPUT/SCRAP_ANALYSIS_*.xlsx'))
     if not files:
-        st.error("❌ Brak raportów Excel!")
+        st.error("❌ Brak raportów Excel w OUTPUT!")
         return None, None
 
     latest_file = files[-1]
-    st.sidebar.info(f"📄 Plik: {latest_file.name}")
+    st.sidebar.info(f"📄 Plik: {Path(latest_file).name}")
 
     try:
         # Czytaj Data sheet (monthly aggregation)
